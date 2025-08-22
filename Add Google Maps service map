@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DontPark - Nashville Service Map</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #1e3a8a;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+        
+        .header p {
+            color: #64748b;
+            font-size: 1.2em;
+        }
+        
+        .map-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .map-container {
+            height: 500px;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 3px solid #e5e7eb;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        .legend {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .legend h4 {
+            color: #1e3a8a;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .legend-icon {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+        }
+        
+        .airport-icon {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .limited-service-icon {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .coming-soon-icon {
+            background: #9ca3af;
+            color: white;
+        }
+        
+        .full-service-icon {
+            background: #10b981;
+            color: white;
+        }
+        
+        .shop-details {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .shop-details.show {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .shop-name {
+            color: #1e3a8a;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+        
+        .service-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .service-badge.limited {
+            background: #f59e0b;
+        }
+        
+        .service-badge.full {
+            background: #10b981;
+        }
+        
+        .service-badge.coming {
+            background: #9ca3af;
+        }
+        
+        .shop-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .info-section h5 {
+            color: #374151;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .info-section p, .info-section li {
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 5px;
+        }
+        
+        .transportation-notice {
+            background: #fef3c7;
+            border: 2px solid #fde68a;
+            color: #92400e;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        
+        .transportation-notice h5 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+        
+        .book-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s ease;
+        }
+        
+        .book-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .book-btn.full {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .book-btn.coming {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .distance-info {
+            background: #eff6ff;
+            border: 2px solid #bfdbfe;
+            color: #1e40af;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .api-note {
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            color: #166534;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        /* Custom InfoWindow styling */
+        .custom-info-window {
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .info-title {
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        
+        .info-details {
+            color: #64748b;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        .info-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .info-button:hover {
+            background: #2563eb;
+        }
+        
+        .info-button.limited {
+            background: #f59e0b;
+        }
+        
+        .info-button.limited:hover {
+            background: #d97706;
+        }
+        
+        .info-button.coming {
+            background: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Nashville Airport Service Network</h1>
+            <p>Real-time Google Maps showing partner locations and service areas</p>
+        </div>
+
+        <div class="map-section">
+            <h3 style="color: #1e3a8a; margin-bottom: 20px; text-align: center;">
+                📍 DontPark Partner Network - Powered by Google Maps
+            </h3>
+            
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+            
+            <div class="legend">
+                <h4>🔍 Map Legend</h4>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <div class="legend-icon airport-icon">✈️</div>
+                        <span><strong>Nashville Airport (BNA)</strong> - Central hub for all services</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon limited-service-icon">🔧</div>
+                        <span><strong>Vehicle Service Only</strong> - Auto repair, arrange own airport transport</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon full-service-icon">🚗</div>
+                        <span><strong>Full Concierge Service</strong> - Auto repair + airport pickup/dropoff</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon coming-soon-icon">🚧</div>
+                        <span><strong>Coming Soon</strong> - Expanding service areas</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="api-note">
+                💰 <strong>Success Indicator:</strong> If Google Maps usage costs become significant, 
+                it means your business is thriving with high traffic! That's a great problem to have! 🚀
+            </div>
+        </div>
+
+        <div id="shopDetails" class="shop-details">
+            <!-- Shop details will be populated here -->
+        </div>
+    </div>
+
+    <script>
+        console.log('🗺️ Loading Google Maps...');
+
+        let map;
+        let markers = [];
+        let infoWindows = [];
+
+        // Location data with real coordinates
+        const locations = {
+            airport: {
+                coords: { lat: 36.1245, lng: -86.6782 }, // Real BNA coordinates
+                name: "Nashville International Airport",
+                type: "airport",
+                icon: "✈️",
+                details: {
+                    address: "1 Terminal Dr, Nashville, TN 37214",
+                    code: "BNA",
+                    description: "Central hub for all DontPark services",
+                    website: "flynashville.com"
+                }
+            },
+            bennetts: {
+                coords: { lat: 35.9828, lng: -86.5186 }, // Smyrna area
+                name: "Bennett's Automotive",
+                type: "limited",
+                icon: "🔧",
+                details: {
+                    address: "Smyrna, TN 37167",
+                    phone: "(615) 555-0123", 
+                    distance: "15 miles southeast of airport",
+                    driveTime: "~20 minutes",
+                    serviceAreas: ["Smyrna", "Murfreesboro", "La Vergne", "Antioch South"],
+                    specialties: ["General Repair", "Brake Service", "Oil Changes", "Diagnostics"],
+                    established: "Family-owned since 1985",
+                    rating: "4.8/5.0",
+                    hasConciergService: false,
+                    transportationNote: "Customers arrange own airport transportation (Uber/Lyft recommended: ~$25-35, 20 minutes)"
+                }
+            },
+            north: {
+                coords: { lat: 36.2088, lng: -86.7644 }, // North Nashville
+                name: "North Nashville Area",
+                type: "coming",
+                icon: "🚧",
+                details: {
+                    description: "Covering Hendersonville, Goodlettsville, and Madison",
+                    expectedLaunch: "Q2 2025",
+                    serviceType: "Planning full concierge service"
+                }
+            },
+            east: {
+                coords: { lat: 36.1627, lng: -86.6000 }, // East Nashville  
+                name: "East Nashville Area",
+                type: "coming",
+                icon: "🚧",
+                details: {
+                    description: "Covering Hermitage, Mt. Juliet, and Lebanon Road",
+                    expectedLaunch: "Q3 2025",
+                    serviceType: "Evaluating service options"
+                }
+            },
+            west: {
+                coords: { lat: 36.1627, lng: -86.8500 }, // West Nashville
+                name: "West Nashville Area",
+                type: "coming", 
+                icon: "🚧",
+                details: {
+                    description: "Covering Belle Meade, Sylvan Park, and Charlotte Avenue",
+                    expectedLaunch: "Q4 2025",
+                    serviceType: "Partner recruitment in progress"
+                }
+            }
+        };
+
+        // Initialize Google Map
+        async function initMap() {
+            console.log('🎯 Initializing Google Map...');
+
+            // Create map centered on Nashville area
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 11,
+                center: { lat: 36.1627, lng: -86.7816 }, // Nashville center
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }] // Hide some POI labels for cleaner look
+                    }
+                ]
+            });
+
+            // Add markers for each location
+            Object.entries(locations).forEach(([key, location]) => {
+                addMarker(key, location);
+            });
+
+            // Add service area circle for Bennett's
+            addServiceAreas();
+
+            console.log('✅ Google Map loaded successfully!');
+        }
+
+        // Add marker to map
+        function addMarker(locationKey, location) {
+            const marker = new google.maps.Marker({
+                position: location.coords,
+                map: map,
+                title: location.name,
+                label: {
+                    text: location.icon,
+                    fontSize: "18px"
+                }
+            });
+
+            // Create info window content
+            const infoContent = createInfoWindowContent(locationKey, location);
+            
+            const infoWindow = new google.maps.InfoWindow({
+                content: infoContent
+            });
+
+            // Add click listener
+            marker.addListener("click", () => {
+                // Close all other info windows
+                infoWindows.forEach(window => window.close());
+                infoWindow.open(map, marker);
+            });
+
+            markers.push(marker);
+            infoWindows.push(infoWindow);
+        }
+
+        // Create info window HTML content
+        function createInfoWindowContent(locationKey, location) {
+            return `
+                <div class="custom-info-window">
+                    <div class="info-title">${location.icon} ${location.name}</div>
+                    <div class="info-details">
+                        ${location.type === 'airport' ? 
+                            'Central hub for all DontPark services' :
+                          location.type === 'coming' ? 
+                            location.details.description :
+                            `${location.details.distance}<br>${location.details.driveTime}`
+                        }
+                    </div>
+                    <button class="info-button ${location.type}" onclick="showLocationDetails('${locationKey}')">
+                        ${location.type === 'airport' ? 'Airport Info' :
+                          location.type === 'coming' ? 'Get Notified' :
+                          'View Details & Book'}
+                    </button>
+                </div>
+            `;
+        }
+
+        // Add service area circles
+        function addServiceAreas() {
+            // Bennett's service area
+            new google.maps.Circle({
+                strokeColor: "#f59e0b",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: "#f59e0b", 
+                fillOpacity: 0.1,
+                map: map,
+                center: locations.bennetts.coords,
+                radius: 25000, // 25km radius
+            });
+
+            // Coming soon areas (smaller, dashed-style circles)
+            ['north', 'east', 'west'].forEach(area => {
+                new google.maps.Circle({
+                    strokeColor: "#9ca3af",
+                    strokeOpacity: 0.6,
+                    strokeWeight: 2,
+                    fillColor: "#9ca3af",
+                    fillOpacity: 0.05,
+                    map: map,
+                    center: locations[area].coords,
+                    radius: 15000, // 15km radius
+                });
+            });
+        }
+
+        // Show detailed location information
+        function showLocationDetails(locationKey) {
+            const location = locations[locationKey];
+            let detailsHTML = '';
+
+            if (location.type === 'airport') {
+                detailsHTML = `
+                    <div class="shop-header">
+                        <div class="shop-name">Nashville International Airport</div>
+                        <div class="service-badge full">✈️ Central Hub</div>
+                    </div>
+                    <div class="shop-info">
+                        <div class="info-section">
+                            <h5>📍 Airport Information</h5>
+                            <p><strong>Address:</strong> ${location.details.address}</p>
+                            <p><strong>Airport Code:</strong> ${location.details.code}</p>
+                            <p><strong>Website:</strong> ${location.details.website}</p>
+                        </div>
+                        <div class="info-section">
+                            <h5>🛣️ Major Access Routes</h5>
+                            <p><strong>From North:</strong> I-40 West to Donelson Pike</p>
+                            <p><strong>From South:</strong> I-24 North to I-40 West</p>
+                            <p><strong>From East/West:</strong> I-40 to Airport exit</p>
+                        </div>
+                        <div class="info-section">
+                            <h5>🗺️ DontPark Network</h5>
+                            <p>All partner shops are strategically located for convenient airport access. Use the map to find the shop closest to your route!</p>
+                        </div>
+                    </div>
+                `;
+            } else if (location.type === 'coming') {
+                detailsHTML = `
+                    <div class="shop-header">
+                        <div class="shop-name">${location.name}</div>
+                        <div class="service-badge coming">🚧 Coming Soon</div>
+                    </div>
+                    <div class="shop-info">
+                        <div class="info-section">
+                            <h5>📍 Coverage Area</h5>
+                            <p>${location.details.description}</p>
+                        </div>
+                        <div class="info-section">
+                            <h5>🚀 Launch Timeline</h5>
+                            <p><strong>Expected Launch:</strong> ${location.details.expectedLaunch}</p>
+                            <p><strong>Service Type:</strong> ${location.details.serviceType}</p>
+                        </div>
+                        <div class="info-section">
+                            <h5>💡 Get Notified</h5>
+                            <p>Be the first to know when service becomes available in your area!</p>
+                        </div>
+                    </div>
+                    <button class="book-btn coming" onclick="notifyMe('${locationKey}')">
+                        📧 Notify Me When Available
+                    </button>
+                `;
+            } else {
+                // Bennett's or other active shops
+                detailsHTML = `
+                    <div class="shop-header">
+                        <div class="shop-name">${location.name}</div>
+                        <div class="service-badge ${location.type}">
+                            ${location.details.hasConciergService ? '✈️ Full Concierge Service' : '🔧 Vehicle Service Only'}
+                        </div>
+                    </div>
+
+                    <div class="distance-info">
+                        <strong>📏 Distance from Airport:</strong> ${location.details.distance} (${location.details.driveTime})
+                    </div>
+
+                    <div class="shop-info">
+                        <div class="info-section">
+                            <h5>📍 Location & Contact</h5>
+                            <p><strong>Address:</strong> ${location.details.address}</p>
+                            <p><strong>Phone:</strong> ${location.details.phone}</p>
+                            <p><strong>Rating:</strong> ⭐ ${location.details.rating}</p>
+                            <p><strong>Established:</strong> ${location.details.established}</p>
+                        </div>
+
+                        <div class="info-section">
+                            <h5>🛠️ Specialties</h5>
+                            <ul style="margin-left: 20px;">
+                                ${location.details.specialties.map(specialty => `<li>${specialty}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="info-section">
+                            <h5>📍 Service Areas</h5>
+                            <p>${location.details.serviceAreas.join(', ')}</p>
+                        </div>
+                    </div>
+
+                    ${!location.details.hasConciergService ? `
+                        <div class="transportation-notice">
+                            <h5>🚕 Transportation Notice</h5>
+                            <p><strong>Bennett's Auto provides vehicle service only.</strong></p>
+                            <p>${location.details.transportationNote}</p>
+                        </div>
+                    ` : ''}
+
+                    <button class="book-btn ${location.type}" onclick="bookService('${locationKey}')">
+                        ${location.details.hasConciergService ? 
+                            '🚀 Book Service + Airport Pickup' : 
+                            '🔧 Book Vehicle Service (Arrange Own Ride)'
+                        }
+                    </button>
+                `;
+            }
+
+            document.getElementById('shopDetails').innerHTML = detailsHTML;
+            document.getElementById('shopDetails').classList.add('show');
+            
+            // Scroll to details
+            setTimeout(() => {
+                document.getElementById('shopDetails').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }, 100);
+        }
+
+        function bookService(locationKey) {
+            const location = locations[locationKey];
+            alert(`Redirecting to booking for ${location.name}...\n\n${location.details.hasConciergService ? 'Full service with airport pickup!' : 'Remember to arrange your own airport transportation!'}`);
+            console.log('Booking service for:', locationKey, location);
+        }
+
+        function notifyMe(locationKey) {
+            const location = locations[locationKey];
+            const email = prompt(`Enter your email to be notified when ${location.name} service launches:`);
+            if (email) {
+                alert(`Thank you! We'll notify ${email} when service becomes available in ${location.name}.`);
+                console.log('Notification signup:', locationKey, email);
+            }
+        }
+
+        // Auto-show Bennett's details on load for demo
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                showLocationDetails('bennetts');
+            }, 2000);
+        });
+
+        // Global function for Google Maps callback
+        window.initMap = initMap;
+    </script>
+
+    <!-- Load Google Maps API -->
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA55xI2xoTn_kGTLDmHnDOoWhw18ZehT4A&callback=initMap">
+    </script>
+</body>
+</html>
