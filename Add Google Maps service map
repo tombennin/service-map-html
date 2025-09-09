@@ -378,22 +378,20 @@
                     website: "flynashville.com"
                 }
             },
-            bennetts: {
-                coords: { lat: 35.9828, lng: -86.5186 }, // Smyrna area
-                name: "Bennett's Automotive",
+            distinctive: {
+                coords: { lat: 35.86746, lng: -86.41336 }, // Murfreesboro area
+                name: "Distinctive Auto Repair",
                 type: "limited",
                 icon: "🔧",
                 details: {
-                    address: "Smyrna, TN 37167",
-                    phone: "(615) 555-0123", 
-                    distance: "15 miles southeast of airport",
-                    driveTime: "~20 minutes",
+                    address: "1515 NW Broad St., Murfreesboro, TN 37129",
+                    phone: "(615) 900-3099", 
+                    distance: "33 miles southeast of airport",
+                    driveTime: "~35 minutes",
                     serviceAreas: ["Smyrna", "Murfreesboro", "La Vergne", "Antioch South"],
-                    specialties: ["General Repair", "Brake Service", "Oil Changes", "Diagnostics"],
-                    established: "Family-owned since 1985",
-                    rating: "4.8/5.0",
+                    specialties: ["AC & Heat Repair", "General Repair", "Brake Repair", "Oil Changes", "Electrical System", "Diagnostics"],
                     hasConciergService: false,
-                    transportationNote: "Customers arrange own airport transportation (Uber/Lyft recommended: ~$25-35, 20 minutes)"
+                    transportationNote: "Customers arrange own airport transportation (Uber/Lyft recommended: ~$25-35, 35 minutes)"
                 }
             },
             north: {
@@ -453,7 +451,7 @@
                 addMarker(key, location);
             });
 
-            // Add service area circle for Bennett's
+            // Add service area circle for Distinctive
             addServiceAreas();
 
             console.log('✅ Google Map loaded successfully!');
@@ -521,7 +519,7 @@
                 fillColor: "#f59e0b", 
                 fillOpacity: 0.1,
                 map: map,
-                center: locations.bennetts.coords,
+                center: locations.distinctive.coords,
                 radius: 25000, // 25km radius
             });
 
@@ -596,7 +594,7 @@
                     </button>
                 `;
             } else {
-                // Bennett's or other active shops
+                // Distinctive or other active shops
                 detailsHTML = `
                     <div class="shop-header">
                         <div class="shop-name">${location.name}</div>
@@ -634,7 +632,7 @@
                     ${!location.details.hasConciergService ? `
                         <div class="transportation-notice">
                             <h5>🚕 Transportation Notice</h5>
-                            <p><strong>Bennett's Auto provides vehicle service only.</strong></p>
+                            <p><strong>Distinctive provides vehicle service only.</strong></p>
                             <p>${location.details.transportationNote}</p>
                         </div>
                     ` : ''}
@@ -677,7 +675,7 @@
         // Auto-show Bennett's details on load for demo
         window.addEventListener('load', function() {
             setTimeout(() => {
-                showLocationDetails('bennetts');
+                showLocationDetails('distinctive');
             }, 2000);
         });
 
